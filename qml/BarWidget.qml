@@ -5,7 +5,7 @@ import "." as Stocks
 
 Ui.BarWidget {
     id: root
-    moduleName: "io.github.dmitry-solomadin.omastocks"
+    moduleName: "io.github.TowhidMolla-Dev.omastocks"
     onSettingsChanged: Stocks.StockStore.barSettings = Object.assign({}, settings)
     Component.onCompleted: Stocks.StockStore.barSettings = Object.assign({}, settings)
     readonly property bool stripEnabled: setting("showStrip", true) !== false

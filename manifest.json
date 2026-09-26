@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "io.github.dmitry-solomadin.omastocks",
+  "id": "io.github.TowhidMolla-Dev.omastocks",
   "name": "Omastocks",
   "version": "0.1.0",
-  "author": "dmitry-solomadin",
+  "author": "TowhidMolla-Dev",
   "license": "MIT",
   "description": "A tileable stock watchlist with comparison charts, financial statements, earnings, news and an optional favorites ticker.",
   "kinds": ["service", "bar-widget"],

@@ -7,7 +7,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = "io.github.dmitry-solomadin.omastocks"
+PLUGIN = "io.github.TowhidMolla-Dev.omastocks"
 
 
 class LauncherTests(unittest.TestCase):

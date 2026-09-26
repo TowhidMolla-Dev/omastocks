@@ -310,7 +310,7 @@ def search(query):
 
 def state_directory():
     return Path(os.environ.get("STOCKS_STATE_DIR") or
-                Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "omarchy/io.github.dmitry-solomadin.omastocks")
+                Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "omarchy/io.github.TowhidMolla-Dev.omastocks")
 
 
 def main(arguments):

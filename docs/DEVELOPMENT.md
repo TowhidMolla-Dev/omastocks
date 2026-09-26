@@ -5,7 +5,7 @@
 For an editable checkout linked into your local Omarchy installation:
 
 ```sh
-git clone https://github.com/dmitry-solomadin/omastocks
+git clone https://github.com/TowhidMolla-Dev/omastocks
 cd omastocks
 ./install
 ```
@@ -120,8 +120,8 @@ After QML changes, reload and reopen:
 
 ```sh
 omarchy restart shell
-omarchy-shell io.github.dmitry-solomadin.omastocks open
-omarchy-shell io.github.dmitry-solomadin.omastocks status
+omarchy-shell io.github.TowhidMolla-Dev.omastocks open
+omarchy-shell io.github.TowhidMolla-Dev.omastocks status
 ```
 
 Check Stock, Market and Watchlist; test chart comparison, list selection and settings
@@ -138,7 +138,7 @@ The app exposes text inspection over IPC for checking behavior after a shell
 reload:
 
 ```sh
-C=io.github.dmitry-solomadin.omastocks
+C=io.github.TowhidMolla-Dev.omastocks
 omarchy-shell $C open
 omarchy-shell $C view market                        # stock, market or watchlist
 omarchy-shell $C dump crossAssets                   # visible text under an objectName; no name dumps the window

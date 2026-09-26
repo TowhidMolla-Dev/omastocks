@@ -18,7 +18,7 @@ Controls.Popup {
         saveError = ""
         const settings = Object.assign({}, barSettings)
         settings[key] = value
-        if (!shell || !shell.updateEntryInline("io.github.dmitry-solomadin.omastocks", settings))
+        if (!shell || !shell.updateEntryInline("io.github.TowhidMolla-Dev.omastocks", settings))
             saveError = "Could not save this setting. Please try again."
         else
             StockStore.barSettings = settings

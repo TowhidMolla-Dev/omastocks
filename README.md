@@ -15,7 +15,7 @@ The launcher helpers use Bash, coreutils, diffutils (`cmp`) and util-linux
 Install and enable the plugin:
 
 ```sh
-omarchy plugin add https://github.com/dmitry-solomadin/omastocks --enable
+omarchy plugin add https://github.com/TowhidMolla-Dev/omastocks --enable
 ```
 
 The launcher entry and icon are installed automatically. Open the Omarchy launcher
@@ -100,7 +100,7 @@ Financials retain reporting dates and currencies. Reddit mentions measure
 attention, not sentiment. Company-only panels are hidden for non-company instruments.
 
 Watchlists and caches live in
-`${XDG_STATE_HOME:-~/.local/state}/omarchy/io.github.dmitry-solomadin.omastocks/`.
+`${XDG_STATE_HOME:-~/.local/state}/omarchy/io.github.TowhidMolla-Dev.omastocks/`.
 Display preferences use Omarchy's plugin settings. Queries go to the relevant
 provider; there is no telemetry or account setup. See
 [network and cache details](docs/DEVELOPMENT.md#data-flow) for contributors.
@@ -108,8 +108,8 @@ provider; there is no telemetry or account setup. See
 ## Update or remove
 
 ```sh
-omarchy plugin update io.github.dmitry-solomadin.omastocks
-omarchy plugin remove io.github.dmitry-solomadin.omastocks
+omarchy plugin update io.github.TowhidMolla-Dev.omastocks
+omarchy plugin remove io.github.TowhidMolla-Dev.omastocks
 ```
 
 Removal asks for confirmation. The plugin cleans up its launcher entry and icon
@@ -128,7 +128,7 @@ docs/       Contributor guide and screenshot gallery
 
 See the [contributor guide](docs/DEVELOPMENT.md) for setting up a development
 checkout, architecture, checks and reload commands.
-The experimental **Brief me** AI feature lives on [`feature/brief-me`](https://github.com/dmitry-solomadin/omastocks/tree/feature/brief-me).
+The experimental **Brief me** AI feature lives on [`feature/brief-me`](https://github.com/TowhidMolla-Dev/omastocks/tree/feature/brief-me).
 
 ## License
 

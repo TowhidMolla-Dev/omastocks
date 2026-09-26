@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-id="io.github.dmitry-solomadin.omastocks"
+id="io.github.TowhidMolla-Dev.omastocks"
 # Compatibility with older install instructions; cleanup belongs to the service.
 exec omarchy plugin remove "$id" "$@"

@@ -46,7 +46,7 @@ Item {
     StocksWindow { id: window; shell: root.shell }
     Connections { target: StockStore; function onOpenRequested() { root.open() } }
     IpcHandler {
-        target: "io.github.dmitry-solomadin.omastocks"
+        target: "io.github.TowhidMolla-Dev.omastocks"
         function open(): void { root.open() }
         function close(): void { window.visible = false }
         function refresh(): void { if (window.visible) window.refresh(); else StockStore.refresh(true) }

@@ -6,7 +6,7 @@ case "$action" in
   install | remove) ;;
   *) echo "Usage: install-launcher [install|remove] [instance-token]" >&2; exit 2 ;;
 esac
-id="io.github.dmitry-solomadin.omastocks"
+id="io.github.TowhidMolla-Dev.omastocks"
 applications="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 icons="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
 state="${STOCKS_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/$id}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root="$(cd -- "$(dirname -- "$0")" && pwd)"
-id="io.github.dmitry-solomadin.omastocks"
+id="io.github.TowhidMolla-Dev.omastocks"
 target="$HOME/.config/omarchy/plugins/$id"
 omarchy plugin validate "$root"
 if [[ -e "$target" || -L "$target" ]]; then

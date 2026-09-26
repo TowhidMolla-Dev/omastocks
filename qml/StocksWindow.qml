@@ -501,7 +501,7 @@ FloatingWindow {
                             compareMode: MarketStore.compareMode
                             comparisons: MarketStore.comparisons
                             primaryColor: MarketStore.compareColors[0]
-                            averages: (MarketStore.averages.series || []).filter(series => MarketStore.averageWindows.indexOf(series.window) >= 0)
+                            averages: (StockStore.selectedIsDse ? MarketStore.localAverages.series : MarketStore.averages.series || []).filter(series => MarketStore.averageWindows.indexOf(series.window) >= 0)
                                 .map(series => Object.assign({}, series, {color: MarketStore.averageColor(series.window)}))
                             events: MarketStore.showEvents ? (window.series.events || []).concat(MarketStore.earnings.events || [])
                                 .concat(MarketStore.earnings.next ? [MarketStore.earnings.next] : []) : []
@@ -569,7 +569,11 @@ FloatingWindow {
                                         objectName: modelData.range ? "yearRangeGauge" : ""
                                         visible: modelData.range === true
                                         Layout.fillWidth: true
-                                        low: window.quote.yearLow; high: window.quote.yearHigh; price: window.quote.price
+                                        // A Dhaka quote carries no 52-week figures, so fall back to
+                                        // the loaded chart, which spans them once a yearly range is open.
+                                        low: window.quote.yearLow ?? StockStore.visibleChart.yearLow
+                                        high: window.quote.yearHigh ?? StockStore.visibleChart.yearHigh
+                                        price: window.quote.price
                                     }
                                 }
                             }

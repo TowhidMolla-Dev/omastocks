@@ -82,9 +82,17 @@ Click a thumbnail to view the full-size screenshot.
 ## Data and storage
 
 Public feeds from **Yahoo Finance, Nasdaq, TradingView, CNN, Google News,
-Stocktwits and ApeWisdom** supply the data. Prices may be delayed, earnings dates
-may be estimates, and coverage varies. Missing values stay **—**; failed refreshes
-retain saved data. Manual refresh respects provider rate limits.
+Stocktwits, ApeWisdom and DSE Intelligence** supply the data. Prices may be
+delayed, earnings dates may be estimates, and coverage varies. Missing values
+stay **—**; failed refreshes retain saved data. Manual refresh respects provider
+rate limits.
+
+**Bangladesh.** Dhaka Stock Exchange listings are searched and charted with a
+`.BD` suffix, such as `GP.BD` and `SQUARETEXT.BD`, because Yahoo carries no DSE
+listings and some tickers exist on both venues. These are end-of-day bars on an
+hourly allowance, so they carry no intraday session, no company research, and no
+52-week range until enough history has accumulated. `DSEX.BD`, `DSES.BD`,
+`DS30.BD` and `CDSET.BD` are available in the Market view.
 
 Watchlist returns exclude dividends. Market-map areas use company market cap,
 not official index weights; memberships are [bundled snapshots](data/README.md).

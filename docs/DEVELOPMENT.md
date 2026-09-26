@@ -72,16 +72,26 @@ tooltips. Financial direction stays green (`#4caf50`) or red (`#ef5350`) across 
   they never fan an entire membership into per-symbol charts. Research batches
   have four workers. Market pages stay mounted after the first visit and poll
   only while active.
-- `bin/yahoo_http.py` shares anonymous authentication, request pacing and HTTP 429
-  backoff across helper processes. Manual refresh bypasses ordinary caches and
-  failure cooldowns, while respecting that shared throttle and successful daily
-  Overview baselines. `bin/tradingview.py` shares bounded scanner transport and
-  share-class symbol mapping.
+ - `bin/yahoo_http.py` shares anonymous authentication, request pacing and HTTP 429
+   backoff across helper processes. Manual refresh bypasses ordinary caches and
+   failure cooldowns, while respecting that shared throttle and successful daily
+   Overview baselines. `bin/tradingview.py` shares bounded scanner transport and
+   share-class symbol mapping.
+ - `bin/dse.py` serves Dhaka Stock Exchange listings, which Yahoo does not carry.
+   It keeps its own hourly allowance and pacing in `dse/traffic.json`, because the
+   limit belongs to that provider and is not shared with Yahoo. Listings are keyed
+   by an explicit `.BD` suffix: some tickers are listed on both venues (`GP`,
+   `MTB`, `IBP`, `PTL`, `UCB` and others), so a bare ticker is asked of Yahoo first
+   and only falls through to the DSE when Yahoo returns no price for it at all.
+   That guess reads only the cached company list, so a watchlist of ordinary
+   symbols never spends a request looking for Bangladeshi ones. `.BD` charts are
+   end-of-day bars, so their `1D` range shows the last two sessions and their
+   moving averages are rolled locally from those closes.
 
 Network hosts: `query1.finance.yahoo.com`, `finance.yahoo.com`, `fc.yahoo.com`,
 `api.nasdaq.com`, `scanner.tradingview.com`, `economic-calendar.tradingview.com`,
 `production.dataviz.cnn.io`, `news.google.com`, `www.google.com`,
-`api.stocktwits.com`, and `apewisdom.io`. Thumbnails use provider-supplied image URLs;
+`api.stocktwits.com`, `stockchartbd.com`, and `apewisdom.io`. Thumbnails use provider-supplied image URLs;
 source links open externally. The earnings-release helper resolves Google's
 redirect on demand. Yahoo's anonymous cookies and crumb stay in the local state directory.
 

@@ -7,8 +7,8 @@ from stocks import fetch, parse_chart
 from urllib.parse import quote
 
 
-def performance(document, ticker):
-    chart = parse_chart(document, ticker, "1Y")
+def performance(document, ticker, chart=None, source="Yahoo Finance"):
+    chart = chart if chart is not None else parse_chart(document, ticker, "1Y")
     today = datetime.now(ZoneInfo(chart["timezone"])).date()
     current = chart["price"]
     samples = [(date.fromisoformat(day), point[1]) for day, point in zip(chart["dates"], chart["points"])]
@@ -31,8 +31,14 @@ def performance(document, ticker):
         prices[period] = baseline[1] if valid else None
     return {"symbol": ticker, "returns": returns, "baselines": baselines,
             "baselinePrices": prices, "baselineDay": today.isoformat(), "timezone": chart["timezone"], "overviewSchema": 2,
-            "asOf": chart["updated"], "currency": chart["currency"], "source": "Yahoo Finance"}
+            "asOf": chart["updated"], "currency": chart["currency"], "source": source}
 
 
 def overview(ticker):
+    import dse
+    if dse.is_dse(ticker):
+        # Two years of daily closes, so a one-year baseline is never the very
+        # first bar. Yahoo carries no Dhaka listing, so the same row is built
+        # from the DSE feed and the watchlist table fills in like any other.
+        return performance(None, ticker, dse.chart(ticker, "2Y"), "DSE Intelligence")
     return performance(fetch("/v8/finance/chart/" + quote(ticker, safe=""), range="2y", interval="1d"), ticker)

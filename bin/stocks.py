@@ -34,6 +34,10 @@ SEED = [("AAPL", "Apple Inc."), ("MSFT", "Microsoft Corporation"),
 BASE = "https://query1.finance.yahoo.com"
 
 
+class UnknownSymbol(ValueError):
+    """The provider holds no listing under this symbol."""
+
+
 def number(value):
     if isinstance(value, bool):
         return None
@@ -46,7 +50,8 @@ def number(value):
 
 def symbol(value):
     value = value.strip().upper()
-    if not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-]{0,29}", value):
+    # Parentheses keep Dhaka's "AMCL(PRAN)" tradable; no other market uses them.
+    if not re.fullmatch(r"[A-Z0-9^][A-Z0-9.^=\-()]{0,29}", value):
         raise ValueError("Enter a valid stock symbol.")
     return value
 
@@ -66,6 +71,9 @@ def read_json(path, default):
 
 
 def write_json(path, data):
+    # Cache files live in per-feature subdirectories that may not exist yet on a
+    # first run, and the temporary file has to be created alongside the target.
+    path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=".stocks-", dir=path.parent)
     try:
         with os.fdopen(descriptor, "w") as output:
@@ -89,7 +97,7 @@ def fetch(path, **parameters):
         if error.code == 429:
             raise ValueError("Yahoo Finance is rate limiting requests. Try again in a few minutes.") from error
         if error.code == 404:
-            raise ValueError("No market data found for this symbol.") from error
+            raise UnknownSymbol("No market data found for this symbol.") from error
         raise ValueError(f"Yahoo Finance returned HTTP {error.code}.") from error
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
         raise ValueError(f"Could not reach Yahoo Finance: {error}") from error
@@ -185,19 +193,37 @@ class Repository:
     def chart(self, ticker, period, force=False):
         if period not in RANGES:
             raise ValueError("Unknown chart range.")
+        import dse
         key = ticker + ":" + period
         cached = self.cache.get(key, {})
         now = time.time()
-        ttl = 60 if period == "1D" else 3600
+        # Dhaka publishes end-of-day bars on a metered feed, so its rows stay
+        # fresh far longer than the intraday ones Yahoo serves. A bare ticker
+        # only learns it comes from there once a row says so.
+        daily = dse.QUOTE_TTL if period == "1D" else dse.CHART_TTL
+        ttl = daily if dse.is_dse(ticker) or cached.get("instrumentType") == "DSE" else (60 if period == "1D" else 3600)
         if cached.get("schema") == 2 and not cached.get("stale", False) and not force and now - cached.get("fetched", 0) < ttl:
             return cached
         if not force and now < cached.get("retryAfter", 0):
             return cached
         try:
-            span, interval = RANGES[period]
-            data = fetch("/v8/finance/chart/" + urllib.parse.quote(ticker, safe=""), range=span, interval=interval, events="div,splits")
-            row = parse_chart(data, ticker, period)
+            if dse.is_dse(ticker):
+                row = dse.chart(ticker, period)
+            else:
+                span, interval = RANGES[period]
+                try:
+                    row = parse_chart(fetch("/v8/finance/chart/" + urllib.parse.quote(ticker, safe=""),
+                                            range=span, interval=interval, events="div,splits"), ticker, period)
+                except UnknownSymbol:
+                    # Yahoo carries no Dhaka listing. A bare ticker the DSE
+                    # catalog knows is served from there instead, leaving the US
+                    # listing of every symbol Yahoo does know untouched.
+                    if not dse.listings([ticker]):
+                        raise
+                    row = dse.chart(ticker, period)
             row["fetched"] = now
+            if row.get("instrumentType") == "DSE":
+                row["ttl"] = daily
         except (ValueError, TypeError, KeyError, AttributeError, IndexError) as error:
             row = dict(cached) if cached else {"symbol": ticker, "range": period, "points": [], "price": None}
             row.update(stale=True, error=str(error), retryAfter=now + 120)
@@ -214,7 +240,8 @@ class Repository:
         def quote(entry):
             cached = self.cache.get(entry["symbol"] + ":1D", {})
             row = {**entry, **cached, "favorite": entry.get("favorite", False)}
-            row["stale"] = cached.get("stale", False) or time.time() - cached.get("fetched", 0) > 600
+            # A metered daily quote stays fresh past the intraday horizon.
+            row["stale"] = cached.get("stale", False) or time.time() - cached.get("fetched", 0) > cached.get("ttl", 600)
             return row
         return {"entries": [quote(row) for row in entries], "favoriteEntries": [quote(row) for row in favorites],
                 "activeWatchlist": self.state["activeWatchlist"],
@@ -272,6 +299,12 @@ def search(query):
         for row in data.get("quotes", []) if row.get("symbol") and
         row.get("quoteType") in ("EQUITY", "ETF", "INDEX", "MUTUALFUND")
     ]
+    # Yahoo lists no Dhaka company, so the DSE catalog answers for Bangladesh.
+    import dse
+    try:
+        remote.extend(dse.search(query))
+    except (OSError, TypeError, ValueError):
+        pass
     return {"query": query, "results": merge_results(query, remote), "error": error}
 
 

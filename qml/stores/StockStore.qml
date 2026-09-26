@@ -110,11 +110,15 @@ QtObject {
         const detail = chart.symbol === ticker ? chart : {}
         const result = results.find(row => row.symbol === ticker) || {}
         const type = detail.instrumentType || entry.instrumentType || result.type || ""
-        // Indexes, futures, crypto and currencies have no company research.
-        return type ? ["INDEX", "FUTURE", "CRYPTOCURRENCY", "CURRENCY"].indexOf(type.toUpperCase()) >= 0
-            : /^\^|=[FX]$|-USD$/.test(ticker)
+        // Indexes, futures, crypto and currencies have no company research, and
+        // neither has a Dhaka listing, which Yahoo does not cover at all.
+        return type ? ["INDEX", "FUTURE", "CRYPTOCURRENCY", "CURRENCY", "DSE"].indexOf(type.toUpperCase()) >= 0
+            : /\.BD$|^\^|=[FX]$|-USD$/.test(ticker)
     }
     readonly property bool selectedIsNonCompany: isNonCompany(selected)
+    // Yahoo-only research: earnings, statements, analyst targets and news all
+    // come from providers with no Dhaka coverage, so a DSE row skips them.
+    readonly property bool selectedIsDse: selected.endsWith(".BD")
     readonly property bool starred: entries.some(entry => entry.symbol === selected && entry.favorite)
     readonly property var visibleChart: chart.symbol === selected && chart.range === period ? chart : ({})
     readonly property bool chartBusy: busy && (!visibleChart.points || !visibleChart.points.length)

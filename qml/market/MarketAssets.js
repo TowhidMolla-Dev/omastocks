@@ -12,6 +12,12 @@ var groups = [
     {title: "Global", note: "Overseas benchmarks; Asia has usually closed by the US open.", assets: [
         {symbol: "^FTSE", name: "FTSE 100"}, {symbol: "^GDAXI", name: "DAX"}, {symbol: "^STOXX50E", name: "Euro Stoxx 50"},
         {symbol: "^N225", name: "Nikkei 225"}, {symbol: "^HSI", name: "Hang Seng"}]},
+    // Yahoo lists no Dhaka company, so these carry a `.BD` suffix and come from
+    // the DSE. The session runs Sunday to Thursday, 10:00 to 14:30 locally, and
+    // is always closed by the time the other benchmarks here reopen.
+    {title: "Bangladesh", note: "Dhaka Stock Exchange; closed by the US open.", assets: [
+        {symbol: "DSEX.BD", name: "DSEX"}, {symbol: "DSES.BD", name: "DSES"},
+        {symbol: "DS30.BD", name: "DS30"}, {symbol: "CDSET.BD", name: "CDSET"}]},
     {title: "Commodities", assets: [
         {symbol: "GC=F", name: "Gold"}, {symbol: "SI=F", name: "Silver"}, {symbol: "CL=F", name: "Crude oil"},
         {symbol: "NG=F", name: "Natural gas"}, {symbol: "HG=F", name: "Copper"}]},

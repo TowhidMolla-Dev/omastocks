@@ -101,3 +101,16 @@ assert.equal(chart.compareMany([{points: [[100, 0], [200, 10]], dates: days.slic
 const intraday = chart.compareMany([{points: [[300, 10], [600, 20], [900, 30]]}, {points: [[300, 2], [900, 4]]}], "1D")
 assert.deepEqual(plain(intraday.series[1].points), [[0, 0, 2], [2, 100, 4]])
 console.log("PASS: five-stock shared baseline, raw hover prices, currencies/colors, missing intervals and non-overlap")
+
+// A Dhaka chart carries the closes these need, so its averages are rolled locally.
+const closes = Array.from({length: 10}, (_, index) => [index, index + 1])
+const closeDays = Array.from({length: 10}, (_, index) => "2026-01-" + String(index + 1).padStart(2, "0"))
+const rolled = chart.dailyAverages(closes, closeDays, [3, 20])
+// A mean starts only once its window is full, and the closing value is the mean of the last three.
+assert.deepEqual(plain(rolled[0].points), [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 9]])
+assert.deepEqual(plain(rolled[0].dates), closeDays.slice(2))
+// A window longer than the chart is simply absent, and ragged input is refused.
+assert.deepEqual(plain(rolled[1].points), [])
+assert.deepEqual(plain(chart.dailyAverages(closes, closeDays.slice(1), [3])), [])
+for (const window of [20, 50, 200]) assert.equal(chart.dailyAverages(closes, closeDays, [window])[0].points.length, 0)
+console.log("PASS: local moving averages roll only over a full window and refuse ragged input")

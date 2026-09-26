@@ -72,6 +72,26 @@ function dailyAveragesSupported(period) {
     return ["1M", "3M", "YTD", "1Y", "2Y", "5Y", "ALL"].indexOf(period) >= 0
 }
 
+// Rolling means over the closes a chart already holds, for feeds that publish no
+// separate averages. Mirrors the helper's series shape, dated as projectAverage
+// expects, so the same overlay works either way.
+function dailyAverages(points, dates, windows) {
+    if (!points || !dates || points.length !== dates.length) return []
+    return windows.map(window => {
+        let total = 0
+        const values = [], days = []
+        for (let index = 0; index < points.length; index++) {
+            total += points[index][1]
+            if (index >= window) total -= points[index - window][1]
+            if (index >= window - 1) {
+                values.push([points[index][0], total / window])
+                days.push(dates[index])
+            }
+        }
+        return {window: window, points: values, dates: days}
+    })
+}
+
 // Ranges drawn with bars spanning several days, each dated by its first day:
 // weekly for 5Y, and for ALL monthly or, on long histories, quarterly (Yahoo
 // picks). A bar runs until the next one starts; the last runs until today.

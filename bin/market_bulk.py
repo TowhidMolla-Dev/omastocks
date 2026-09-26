@@ -72,4 +72,35 @@ def parse_quotes(document, tickers):
 
 
 def quotes(tickers, request=authenticated):
-    return parse_quotes(request("/v7/finance/quote", symbols=",".join(tickers)), tickers)
+    """One Yahoo request, plus the Dhaka rows Yahoo cannot serve.
+
+    A `.BD` symbol always belongs to the DSE. A bare one goes to Yahoo first, so
+    a US listing such as `MTB` keeps its own company, and only falls through to
+    the DSE when Yahoo returns no quote for it at all. That guess reads only the
+    company list a previous run saved, so a watchlist of ordinary symbols never
+    spends a request looking for Bangladeshi ones.
+    """
+    import dse
+    rows, remote, local = {}, [], []
+    for ticker in tickers:
+        (local if dse.is_dse(ticker) else remote).append(ticker)
+    if remote:
+        try:
+            rows.update(parse_quotes(request("/v7/finance/quote", symbols=",".join(remote)), remote)["rows"])
+        except ValueError:
+            if not local:
+                # Nothing came back, but a saved company list may still name
+                # every symbol as a Dhaka one.
+                local, remote = remote, []
+    # Keyed by the tagged symbol, so a bare ticker and its `.BD` spelling resolve
+    # to one request between them. Yahoo "declines" a symbol by returning no row
+    # or a row with no price, and only then is a Dhaka listing worth looking up.
+    origin = {dse.tagged(ticker): ticker for ticker in local}
+    declined = [ticker for ticker in remote if rows.get(ticker, {}).get("price") is None]
+    for bare_symbol in dse.listings(declined, cached=True):
+        origin.setdefault(dse.tagged(bare_symbol), bare_symbol)
+    for tagged, row in dse.quotes(sorted(origin)).items():
+        rows[origin[tagged]] = {**row, "symbol": origin[tagged]}
+    for ticker in tickers:
+        rows.setdefault(ticker, {"symbol": ticker, "price": None, "percent": None, "error": "Bulk quote unavailable"})
+    return {"rows": rows, "source": "Yahoo Finance / DSE Intelligence", "quotesSchema": 3}

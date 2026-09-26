@@ -358,6 +358,14 @@ def main(arguments):
     key = hashlib.sha256(f"{action}:{ticker}:{period}".encode()).hexdigest()
     path = directory / (key + ".json")
     ttl = 60 if action == "compare" and period in ("1D", "1W") else CACHE_TTLS[action]
+    if action == "quotes":
+        import dse
+        # Dhaka is end-of-day data on an hourly allowance. Spacing the poll to
+        # the number of listings requested keeps a full watchlist of them inside
+        # that allowance instead of spending it on the first refresh.
+        local = sum(1 for item in ticker.split(",") if dse.is_dse(item))
+        if local:
+            ttl = max(dse.QUOTE_TTL, int(local * dse.WINDOW / (dse.LIMIT * .6)))
     with (directory / (key + ".lock")).open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         saved = read_json(path, {})

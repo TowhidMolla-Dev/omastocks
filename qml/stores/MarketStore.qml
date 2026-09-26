@@ -7,7 +7,9 @@ import "../charts/ChartMath.js" as ChartMath
 QtObject {
     id: root
     readonly property bool active: StockStore.running && StockStore.windowOpen && StockStore.view === "stock" && !!StockStore.selected
-    readonly property bool stockResearchActive: active && !compareMode
+    // A Dhaka listing has no Yahoo coverage, so its news, social feed, extended
+    // session and moving averages are left unrequested rather than left failing.
+    readonly property bool stockResearchActive: active && !compareMode && !StockStore.selectedIsDse
     readonly property bool companyResearchActive: stockResearchActive && !StockStore.selectedIsNonCompany
     readonly property bool showVolume: StockStore.barSettings.showVolume !== false
     readonly property bool showEvents: StockStore.barSettings.showEvents !== false
@@ -35,6 +37,14 @@ QtObject {
     readonly property bool earningsCallsOpen: sectionOpen("calls")
     readonly property var earningsCalls: callsRequest.data
     readonly property var averages: averagesRequest.data
+    // A Dhaka chart holds the closes these need, so its averages are derived
+    // here instead of asked of a provider that has no listing for the symbol.
+    readonly property var localAverages: {
+        const series = StockStore.selectedIsDse && StockStore.visibleChart.symbol === StockStore.selected
+            ? ChartMath.dailyAverages(StockStore.visibleChart.points || [], StockStore.visibleChart.dates || [], [20, 50, 200])
+            : []
+        return {symbol: StockStore.selected, series: series}
+    }
     readonly property bool financialsOpen: sectionOpen("financials")
     function toggleFinancials() { toggleSection("financials") }
     property string financialFrequency: "quarterly"
@@ -102,7 +112,7 @@ QtObject {
     property DataRequest extendedRequest: DataRequest { arguments: root.stockResearchActive ? ["extended", StockStore.selected] : []; refreshInterval: 60000 }
     property DataRequest eventsRequest: DataRequest { arguments: root.companyResearchActive ? ["events", StockStore.selected] : []; refreshInterval: 300000 }
     property DataRequest callsRequest: DataRequest { arguments: root.companyResearchActive && root.earningsCallsOpen ? ["calls", StockStore.selected] : [] }
-    property DataRequest averagesRequest: DataRequest { arguments: root.stockResearchActive && root.averagesAvailable && root.averageWindows.length ? ["averages", StockStore.selected] : []; refreshInterval: 300000 }
+    property DataRequest averagesRequest: DataRequest { arguments: root.stockResearchActive && !StockStore.selectedIsDse && root.averagesAvailable && root.averageWindows.length ? ["averages", StockStore.selected] : []; refreshInterval: 300000 }
     property DataRequest compareOne: DataRequest { arguments: root.comparisonArguments(0); refreshInterval: 300000 }
     property DataRequest compareTwo: DataRequest { arguments: root.comparisonArguments(1); refreshInterval: 300000 }
     property DataRequest compareThree: DataRequest { arguments: root.comparisonArguments(2); refreshInterval: 300000 }

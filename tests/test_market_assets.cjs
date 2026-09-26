@@ -9,11 +9,11 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, "../qml/market/MarketAssets
 const symbols = Array.from(assets.symbols())
 assert.equal(new Set(symbols).size, symbols.length)
 assert.deepEqual(symbols, symbols.slice().sort())
-for (const symbol of ["^SPX", "^VIX", "ES=F", "^N225", "GC=F", "BTC-USD", "^TNX", "EURUSD=X"]) assert.ok(symbols.includes(symbol), symbol)
+for (const symbol of ["^SPX", "^VIX", "ES=F", "^N225", "GC=F", "BTC-USD", "^TNX", "EURUSD=X", "DSEX.BD", "CDSET.BD"]) assert.ok(symbols.includes(symbol), symbol)
 assert.equal(assets.price({format: "yield"}, 5.0664), "5.066%")
 assert.equal(assets.price({format: "fx"}, 1.139731), "1.1397")
 assert.equal(assets.price({}, null), "—")
-assert.equal(symbols.length, 39)
+assert.equal(symbols.length, 43)
 const spx = assets.benchmarks[0], vix = assets.benchmarks[3]
 assert.equal(assets.benchmark(spx, false).symbol, "^SPX")
 assert.equal(assets.benchmark(spx, true).symbol, "ES=F")

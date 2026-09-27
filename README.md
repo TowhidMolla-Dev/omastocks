@@ -6,6 +6,13 @@ theme, fonts and scaling. No API keys or Python dependencies.
 
 ![Omastocks opening on AMD: daily chart, watchlist and stock research](preview.png)
 
+> [!IMPORTANT]
+> **This is a fork.** It started as
+> [dmitry-solomadin/omastocks](https://github.com/dmitry-solomadin/omastocks) and
+> is maintained here as `TowhidMolla-Dev/omastocks`, under its own plugin id.
+> All credit for the original app goes to its author. See
+> [What this fork changes](#what-this-fork-changes).
+
 ## Install
 
 Requires **Omarchy's Quickshell-based shell**, Python **3.10+**, and `tzdata`.
@@ -23,6 +30,56 @@ with **Super+Space**, search for **Stocks**, and launch the app.
 
 Installation is user-local. The window is titled **Stocks**; closing it leaves
 the optional favorites ticker running.
+
+## What this fork changes
+
+### Dhaka Stock Exchange
+
+Yahoo Finance carries no DSE listings at all, so before this fork a Dhaka stock
+could not be searched, quoted or charted. There is now a second provider behind
+the same shapes the UI already consumes.
+
+- **Quote, chart, search and add** any DSE equity with a `.BD` suffix, e.g.
+  `GP.BD`, `SQUARETEXT.BD`, `AMCL(PRAN).BD`.
+- **`.BD` settles venue collisions.** `GP.BD` is Grameenphone in Dhaka; bare `GP`
+  is Grupo Pearson in Madrid. A bare ticker still tries Yahoo first and only
+  falls through to Dhaka when Yahoo has no price *and* the cached catalog
+  recognises it, so an unknown ticker stays an honest error rather than a guess.
+- **`DSEX.BD`, `DSES.BD`, `DS30.BD` and `CDSET.BD`** appear in the Market view
+  under a **Bangladesh** group.
+- **Local moving averages.** Yahoo's averages endpoint does not cover Dhaka, so
+  20/50/200-day averages are computed from the daily bars instead.
+- **Watchlist returns** for Dhaka rows read two years of daily bars, which is
+  what the 1W/1M/YTD/1Y columns need.
+- **Research panels are hidden** for a `.BD` row: earnings, statements, analyst
+  targets and news all come from providers with no Dhaka coverage, so a blank
+  panel beats an error.
+- **Rate-limit aware.** The upstream allowance is 120 requests an hour per IP.
+  Spend is tracked in a file that survives restarts, with a small gap between
+  calls, and a watchlist that would not fit the budget reports which rows were
+  skipped instead of silently returning nothing.
+
+### International listings
+
+Non-US equities were never US-only. Any venue Yahoo covers is reachable by
+suffix — `.L` for London, `.DE` and `.PA` for Frankfurt and Paris, `.TO` for
+Toronto — and quotes denominated in pence, rand or shekels are converted
+correctly. `ISDE.L`, `ISDW.L`, `MNZL` and `EURUSD=X` in the default watchlist
+already rely on that. Dhaka fills a gap that was genuinely missing rather than
+incrementally widening coverage that already worked.
+
+### Fixes
+
+- The 52-week range no longer stays blank on venues whose quote payload omits it;
+  it falls back to the loaded chart.
+- That range now counts only the trailing year, so a 2Y or 5Y chart no longer
+  reports a multi-year span under a 52-week label.
+- A watchlist row whose Yahoo price is missing is no longer treated as an error
+  when Dhaka has the listing.
+- `write_json` creates missing parent directories instead of failing on a first
+  write to a fresh state directory.
+- Symbols containing parentheses validate, which is what Dhaka's `AMCL(PRAN)`
+  style tickers need.
 
 ## Explore
 
@@ -90,9 +147,10 @@ rate limits.
 **Bangladesh.** Dhaka Stock Exchange listings are searched and charted with a
 `.BD` suffix, such as `GP.BD` and `SQUARETEXT.BD`, because Yahoo carries no DSE
 listings and some tickers exist on both venues. These are end-of-day bars on an
-hourly allowance, so they carry no intraday session, no company research, and no
-52-week range until enough history has accumulated. `DSEX.BD`, `DSES.BD`,
-`DS30.BD` and `CDSET.BD` are available in the Market view.
+hourly allowance, so they carry no intraday session and no company research. The
+52-week range appears once a yearly range has loaded, and moving averages are
+computed locally. `DSEX.BD`, `DSES.BD`, `DS30.BD` and `CDSET.BD` are available
+in the Market view. See [What this fork changes](#what-this-fork-changes).
 
 Watchlist returns exclude dividends. Market-map areas use company market cap,
 not official index weights; memberships are [bundled snapshots](data/README.md).
@@ -129,6 +187,36 @@ docs/       Contributor guide and screenshot gallery
 See the [contributor guide](docs/DEVELOPMENT.md) for setting up a development
 checkout, architecture, checks and reload commands.
 The experimental **Brief me** AI feature lives on [`feature/brief-me`](https://github.com/TowhidMolla-Dev/omastocks/tree/feature/brief-me).
+
+## Roadmap
+
+Open an issue if you want to pick something up.
+
+### Known gaps
+
+- [ ] The header session chip still reports New York hours on a `.BD` row. A
+      Dhaka session needs its own clock, since DSE runs Sun–Thu 10:00–14:30 BST
+      and has no pre/post market. Currently declined rather than wrong-silently
+      patched.
+- [ ] Watchlist state stores its entries twice — `watchlists[].entries` and a
+      legacy top-level mirror — and the mirror can go stale. It already cost a
+      favorite flag during the id rename; it should collapse to one source.
+- [ ] No DSE intraday. The provider publishes end-of-day bars only, so `1D` is
+      the last two sessions rather than a live session.
+- [ ] No DSE company research. Earnings, statements, news and analyst targets
+      need a Dhaka-aware source before those panels can return.
+- [ ] A watchlist heavy on `.BD` rows spends its hourly allowance on `2Y` charts
+      for the performance table. A shared cache keyed by symbol would let one
+      fetch serve both the chart and the table.
+
+### Ideas
+
+- [ ] More South Asian exchanges, where Yahoo coverage is similarly thin.
+- [ ] BDT conversion toggle for comparing a Dhaka holding against a USD one.
+- [ ] DSE exchange holidays and session calendar, for the same reason the chip
+      above needs one.
+- [ ] Screenshot of a `.BD` row in the gallery, which currently shows US names only.
+- [ ] Publish to the Omarchy plugin marketplace under this fork's own id.
 
 ## License
 

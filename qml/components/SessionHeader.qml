@@ -9,8 +9,11 @@ Item {
     id: root
     default property alias content: row.data
     readonly property alias session: session
+    // When true the chip follows the selected row's own exchange, so a Dhaka
+    // row shows Dhaka hours rather than the New York session.
+    property bool selectedExchange: false
     implicitHeight: row.implicitHeight + Style.space(48)
-    MarketSession { id: session; active: root.visible && StockStore.windowOpen }
+    MarketSession { id: session; active: root.visible && StockStore.windowOpen; dhaka: root.selectedExchange && StockStore.selectedIsDse }
     MarketSky { anchors.fill: parent; session: session }
     RowLayout {
         id: row

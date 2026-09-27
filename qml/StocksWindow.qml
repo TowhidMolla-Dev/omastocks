@@ -426,6 +426,7 @@ FloatingWindow {
                     id: stockHeader
                     objectName: "stockHeader"
                     visible: !MarketStore.compareMode
+                    selectedExchange: true
                     Layout.fillWidth: true
                     ColumnLayout {
                         Layout.fillWidth: true

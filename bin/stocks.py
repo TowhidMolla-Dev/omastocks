@@ -190,6 +190,13 @@ class Repository:
         if not isinstance(self.cache, dict):
             raise ValueError("Invalid cache.json. File left untouched.")
 
+    def save(self):
+        # watchlists is the only source of truth. The legacy entries mirror is
+        # re-derived on every write rather than trusted, so mutating a list that
+        # is not the active one cannot leave the mirror pointing at stale rows.
+        watchlists.normalize(self.state)
+        write_json(self.state_path, self.state)
+
     def chart(self, ticker, period, force=False):
         if period not in RANGES:
             raise ValueError("Unknown chart range.")
@@ -249,7 +256,7 @@ class Repository:
 
     def watchlist(self, action, identity="", name=""):
         watchlists.change(self.state, action, identity, name)
-        write_json(self.state_path, self.state)
+        self.save()
         return self.snapshot()
 
     def mutate(self, action, ticker, name="", favorite=False, list_id=""):
@@ -268,7 +275,7 @@ class Repository:
                 for entry in watchlist["entries"]:
                     if entry["symbol"] == ticker:
                         entry["favorite"] = value
-        write_json(self.state_path, self.state)
+        self.save()
         return self.snapshot()
 
     def move(self, ticker, before="", list_id=""):
@@ -282,7 +289,7 @@ class Repository:
         index = next((i for i, entry in enumerate(ordered) if entry["symbol"] == before), len(ordered))
         ordered.insert(index, moving)
         entries[:] = ordered
-        write_json(self.state_path, self.state)
+        self.save()
         return self.snapshot()
 
 

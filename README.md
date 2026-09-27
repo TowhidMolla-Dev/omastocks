@@ -61,12 +61,27 @@ the same shapes the UI already consumes.
 
 ### International listings
 
-Non-US equities were never US-only. Any venue Yahoo covers is reachable by
-suffix — `.L` for London, `.DE` and `.PA` for Frankfurt and Paris, `.TO` for
-Toronto — and quotes denominated in pence, rand or shekels are converted
-correctly. `ISDE.L`, `ISDW.L`, `MNZL` and `EURUSD=X` in the default watchlist
-already rely on that. Dhaka fills a gap that was genuinely missing rather than
-incrementally widening coverage that already worked.
+Stocks from all over the world are reachable, not just US ones. Any venue Yahoo
+covers works by suffix, and the ones below were verified against the live
+service:
+
+| Venue | Suffix | Example |
+| --- | --- | --- |
+| Poland, Warsaw | `.WA` | `PKN.WA` — Orlen, PLN |
+| Saudi Arabia | `.SR` | `2222.SR` — Saudi Arabian Oil Company, SAR |
+| India, NSE and BSE | `.NS` / `.BO` | `RELIANCE.NS` — Reliance Industries, INR |
+| United Kingdom, London | `.L` | `ISDE.L` — pence |
+| Germany, Frankfurt | `.DE` | — euro |
+| France, Paris | `.PA` | — euro |
+| Canada, Toronto | `.TO` | — CAD |
+| South Africa | `.JO` | — rand |
+
+Search resolves the exchange too, so `orlen` offers `PKN.WA` (WSE), `sabic`
+offers `2020.SR` (Saudi Stock Exchange) and `tata` offers `TCS.NS` (NSE).
+Quotes denominated in pence, rand or shekels are converted correctly.
+`ISDE.L`, `ISDW.L`, `MNZL` and `EURUSD=X` in the default watchlist already rely
+on that. Dhaka fills a gap that was genuinely missing rather than incrementally
+widening coverage that already worked.
 
 ### Fixes
 
@@ -80,6 +95,14 @@ incrementally widening coverage that already worked.
   write to a fresh state directory.
 - Symbols containing parentheses validate, which is what Dhaka's `AMCL(PRAN)`
   style tickers need.
+- The header session chip follows the selected row's own exchange. A `.BD` row
+  reports Dhaka's Sun–Thu 10:00–14:30 BST session on a dedicated clock, instead
+  of New York hours and a next-open day that is wrong for Bangladesh. The chip's
+  tooltip names whichever market it is showing, and the sky gradient follows the
+  Dhaka trading day rather than the US one.
+- Watchlist state is written through a single path that re-derives the legacy
+  top-level `entries` mirror from `watchlists[].entries` on every save, so the
+  mirror cannot be left pointing at a different list than the one being edited.
 
 ## Explore
 
@@ -194,13 +217,6 @@ Open an issue if you want to pick something up.
 
 ### Known gaps
 
-- [ ] The header session chip still reports New York hours on a `.BD` row. A
-      Dhaka session needs its own clock, since DSE runs Sun–Thu 10:00–14:30 BST
-      and has no pre/post market. Currently declined rather than wrong-silently
-      patched.
-- [ ] Watchlist state stores its entries twice — `watchlists[].entries` and a
-      legacy top-level mirror — and the mirror can go stale. It already cost a
-      favorite flag during the id rename; it should collapse to one source.
 - [ ] No DSE intraday. The provider publishes end-of-day bars only, so `1D` is
       the last two sessions rather than a live session.
 - [ ] No DSE company research. Earnings, statements, news and analyst targets
@@ -213,8 +229,9 @@ Open an issue if you want to pick something up.
 
 - [ ] More South Asian exchanges, where Yahoo coverage is similarly thin.
 - [ ] BDT conversion toggle for comparing a Dhaka holding against a USD one.
-- [ ] DSE exchange holidays and session calendar, for the same reason the chip
-      above needs one.
+- [ ] DSE exchange holidays and session calendar, so the Dhaka chip can hold the
+      session closed on a public holiday the way the US one defers to a
+      provider's `marketState`; Dhaka rows carry no session state to defer to.
 - [ ] Screenshot of a `.BD` row in the gallery, which currently shows US names only.
 - [ ] Publish to the Omarchy plugin marketplace under this fork's own id.
 

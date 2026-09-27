@@ -49,8 +49,7 @@ RowLayout {
     HoverHandler { id: hover }
     Ui.PanelToolTip {
         visible: hover.hovered
-        text: "US market · New York " + root.session.clock + " ET"
-            + "\nPre-market 4:00 · Regular 9:30–16:00 · After hours to 20:00"
-            + (root.session.report.fetched ? "\nS&P 500 session checked " + Qt.formatDateTime(new Date(root.session.report.fetched * 1000), "hh:mm") : "")
+        text: root.session.label + "\n" + root.session.schedule
+            + (root.session.checked ? "\nS&P 500 session checked " + Qt.formatDateTime(new Date(root.session.report.fetched * 1000), "hh:mm") : "")
     }
 }

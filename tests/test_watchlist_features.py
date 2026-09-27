@@ -52,6 +52,32 @@ class Watchlists(unittest.TestCase):
         self.assertEqual(repo.state["entries"], original)
         self.assertEqual(stocks.Repository(self.path).snapshot()["activeWatchlist"], "default")
 
+    def test_the_legacy_mirror_tracks_the_active_list_in_the_saved_file(self):
+        # watchlists is the source of truth; the legacy entries mirror must not
+        # be able to disagree with it in the file on disk, whichever list a
+        # mutation targeted.
+        repo = stocks.Repository(self.path)
+        other = repo.watchlist("create", name="Other")["activeWatchlist"]
+        repo.mutate("add", "ELF", list_id="default")
+        repo.mutate("favorite", "ELF")
+        repo.mutate("add", "AMD", list_id="default")
+        repo.mutate("remove", "ELF", list_id="default")
+
+        def saved():
+            return json.loads((self.path / "watchlist.json").read_text())
+
+        active = saved()["activeWatchlist"]
+        self.assertEqual(active, other)
+        self.assertEqual(saved()["entries"], [])
+        self.assertTrue(any(row["symbol"] == "AMD" for row in saved()["watchlists"][0]["entries"]))
+        # A reload must not resurrect the background list through the mirror.
+        repo.watchlist("select", "default")
+        reopened = stocks.Repository(self.path)
+        self.assertEqual(reopened.state["entries"], reopened.state["watchlists"][0]["entries"])
+        symbols = [r["symbol"] for r in reopened.state["entries"]]
+        self.assertIn("AMD", symbols)
+        self.assertNotIn("ELF", symbols)
+
     def test_queued_mutation_targets_its_original_list(self):
         repo = stocks.Repository(self.path)
         repo.watchlist("create", name="Other")
